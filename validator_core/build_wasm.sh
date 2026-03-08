@@ -4,9 +4,9 @@ em++ -std=c++17 \
   src/engine/validator_engine.cc \
   src/parsers/instance_parser.cc \
   src/parsers/submission_parser.cc \
-  src/validators/instance_validator.cc \
-  src/validators/submission_format_validator.cc \
-  src/validators/submission_semantic_validator.cc \
+  src/validation/instance_validator.cc \
+  src/validation/submission_format_validator.cc \
+  src/validation/submission_semantic_validator.cc \
   src/scoring/score_calculator.cc \
   src/serialization/json_serialization.cc \
   src/wasm/wasm_api.cc \
