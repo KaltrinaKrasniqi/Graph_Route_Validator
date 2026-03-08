@@ -1,4 +1,4 @@
-#include "validators/submission_format_validator.hh"
+#include "validation/submission_format_validator.hh"
 
 #include <string>
 

@@ -40,46 +40,54 @@ bool InstanceValidator::validate(
     // Step entry should already be added by engine.
     // This method only appends diagnostics and returns pass/fail.
 
-    // Header checks
-    if (instance.nodes <= 0) {
-        addError(response,
-                 "INST_HEADER_INVALID",
-                 "Number of nodes must be positive.",
-                 "nodes=" + std::to_string(instance.nodes));
-        return false;
-    }
+// Header checks
+if (instance.nodes < 1 || instance.nodes > 10000) {
+    addError(response,
+             "INST_HEADER_INVALID",
+             "Number of nodes must be in [1, 10000].",
+             "nodes=" + std::to_string(instance.nodes));
+    return false;
+}
 
-    if (instance.streets < 0) {
-        addError(response,
-                 "INST_HEADER_INVALID",
-                 "Number of streets cannot be negative.",
-                 "streets=" + std::to_string(instance.streets));
-        return false;
-    }
+if (instance.streets < 1 || instance.streets > 100000) {
+    addError(response,
+             "INST_HEADER_INVALID",
+             "Number of streets must be in [1, 100000].",
+             "streets=" + std::to_string(instance.streets));
+    return false;
+}
 
-    if (instance.vehicles <= 0) {
-        addError(response,
-                 "INST_HEADER_INVALID",
-                 "Number of vehicles must be positive.",
-                 "vehicles=" + std::to_string(instance.vehicles));
-        return false;
-    }
+if (instance.time_limit < 1 || instance.time_limit > 1000000) {
+    addError(response,
+             "INST_HEADER_INVALID",
+             "Time limit must be in [1, 1000000].",
+             "time_limit=" + std::to_string(instance.time_limit));
+    return false;
+}
 
-    if (instance.time_limit < 0) {
-        addError(response,
-                 "INST_HEADER_INVALID",
-                 "Time limit cannot be negative.",
-                 "time_limit=" + std::to_string(instance.time_limit));
-        return false;
-    }
+if (instance.vehicles < 1 || instance.vehicles > 100) {
+    addError(response,
+             "INST_HEADER_INVALID",
+             "Number of vehicles must be in [1, 100].",
+             "vehicles=" + std::to_string(instance.vehicles));
+    return false;
+}
 
-    if (instance.depot < 0 || instance.depot >= instance.nodes) {
-        addError(response,
-                 "INST_INVALID_DEPOT",
-                 "Depot index is out of range.",
-                 "depot=" + std::to_string(instance.depot));
-        return false;
-    }
+if (instance.depot < 0 || instance.depot >= instance.nodes) {
+    addError(response,
+             "INST_INVALID_DEPOT",
+             "Depot index is out of range.",
+             "depot=" + std::to_string(instance.depot));
+    return false;
+}
+
+if (instance.waste_penalty < 0) {
+    addError(response,
+             "INST_HEADER_INVALID",
+             "Waste penalty must be nonnegative.",
+             "waste_penalty=" + std::to_string(instance.waste_penalty));
+    return false;
+}
 
     // Vehicle type count check
     if (static_cast<int>(instance.vehicle_types.size()) != instance.vehicles) {

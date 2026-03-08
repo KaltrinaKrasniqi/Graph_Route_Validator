@@ -13,16 +13,30 @@ InstanceParseResult InstanceParser::parse(const std::string& text) const {
     Instance instance;
 
     if (!(ss >> instance.nodes
-             >> instance.streets
-             >> instance.time_limit
-             >> instance.vehicles
-             >> instance.depot)) {
+         >> instance.streets
+         >> instance.time_limit
+         >> instance.vehicles
+         >> instance.depot)) {
 
-        result.error_message = "Failed to parse instance header";
+    result.error_message = "Failed to parse instance header";
+    return result;
+    }
+
+    if (!(ss >> instance.waste_penalty)) {
+    instance.waste_penalty = 0;
+   }
+
+    for (int i = 0; i < instance.nodes; i++) {
+    Junction junction;
+
+    if (!(ss >> junction.x >> junction.y)) {
+        result.error_message = "Failed to parse junction data";
         return result;
     }
-    instance.waste_penalty = 0;
 
+    instance.junctions.push_back(junction);
+  }
+    
     // Parse streets
 
     for (int i = 0; i < instance.streets; i++) {

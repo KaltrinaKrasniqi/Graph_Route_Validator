@@ -1,4 +1,4 @@
-#include "validators/submission_semantic_validator.hh"
+#include "validation/submission_semantic_validator.hh"
 
 #include <map>
 #include <set>
