@@ -26,16 +26,16 @@ InstanceParseResult InstanceParser::parse(const std::string& text) const {
     instance.waste_penalty = 0;
    }
 
-    for (int i = 0; i < instance.nodes; i++) {
-    Junction junction;
+//     for (int i = 0; i < instance.nodes; i++) {
+//     Junction junction;
 
-    if (!(ss >> junction.x >> junction.y)) {
-        result.error_message = "Failed to parse junction data";
-        return result;
-    }
+//     if (!(ss >> junction.x >> junction.y)) {
+//         result.error_message = "Failed to parse junction data";
+//         return result;
+//     }
 
-    instance.junctions.push_back(junction);
-  }
+//     instance.junctions.push_back(junction);
+//   }
     
     // Parse streets
 
