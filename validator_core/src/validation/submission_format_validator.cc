@@ -27,13 +27,15 @@ bool SubmissionFormatValidator::validate(
     const Submission& submission,
     ValidationResponse& response) const {
 
+    bool is_valid = true;
+
     if (submission.declared_vehicle_count != instance.vehicles) {
         addError(response,
                  "SUBFMT_VEHICLE_COUNT_MISMATCH",
                  "Submission vehicle count does not match instance vehicle count.",
                  "declared=" + std::to_string(submission.declared_vehicle_count) +
                  ", expected=" + std::to_string(instance.vehicles));
-        return false;
+        is_valid = false;
     }
 
     if (static_cast<int>(submission.routes.size()) != submission.declared_vehicle_count) {
@@ -42,7 +44,7 @@ bool SubmissionFormatValidator::validate(
                  "Number of parsed route blocks does not match declared vehicle count.",
                  "routes=" + std::to_string(submission.routes.size()) +
                  ", declared=" + std::to_string(submission.declared_vehicle_count));
-        return false;
+        is_valid = false;
     }
 
     for (int i = 0; i < static_cast<int>(submission.routes.size()); ++i) {
@@ -54,8 +56,9 @@ bool SubmissionFormatValidator::validate(
                          "SUBFMT_ROUTE_NODE_OUT_OF_RANGE",
                          "Route node index is out of range.",
                          "vehicle=" + std::to_string(i) +
-                         ", node=" + std::to_string(node));
-                return false;
+                         ", node=" + std::to_string(node) +
+                         ", valid_range=[0," + std::to_string(instance.nodes - 1) + "]");
+                is_valid = false;
             }
         }
 
@@ -65,13 +68,14 @@ bool SubmissionFormatValidator::validate(
                          "SUBFMT_STREET_ID_OUT_OF_RANGE",
                          "Cleaned street id is out of range.",
                          "vehicle=" + std::to_string(i) +
-                         ", street_id=" + std::to_string(street_id));
-                return false;
+                         ", street_id=" + std::to_string(street_id) +
+                         ", valid_range=[0," + std::to_string(instance.streets - 1) + "]");
+                is_valid = false;
             }
         }
     }
 
-    return true;
+    return is_valid;
 }
 
 } // namespace validator

@@ -1,13 +1,16 @@
 #pragma once
 #include <string>
+#include <vector>
+
 #include "models/submission.hh"
+#include "models/validation_response.hh"
 
 namespace validator {
 
 struct SubmissionParseResult {
     bool success = false;
-    std::string error_message;
     Submission submission;
+    std::vector<Diagnostic> diagnostics;
 };
 
 class SubmissionParser {

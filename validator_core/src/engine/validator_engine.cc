@@ -10,6 +10,28 @@
 
 namespace validator {
 
+namespace {
+
+std::string firstDiagnosticMessage(const std::vector<Diagnostic>& diagnostics,
+                                   const std::string& fallback) {
+    for (const auto& diagnostic : diagnostics) {
+        if (!diagnostic.message.empty()) {
+            return diagnostic.message;
+        }
+    }
+    return fallback;
+}
+
+void appendDiagnostics(ValidationResponse& response,
+                       const std::vector<Diagnostic>& diagnostics) {
+    response.diagnostics.insert(
+        response.diagnostics.end(),
+        diagnostics.begin(),
+        diagnostics.end());
+}
+
+} // namespace
+
 ValidationResponse ValidatorEngine::evaluate(
     const std::string& instance_text,
     const std::string& submission_text) {
@@ -30,19 +52,15 @@ ValidationResponse ValidatorEngine::evaluate(
     auto instance_result = instance_parser.parse(instance_text);
 
     if (!instance_result.success) {
+        appendDiagnostics(response, instance_result.diagnostics);
 
         response.status = ValidatorStatus::ErrorInstance;
-        response.summary = instance_result.error_message;
+        response.summary = "Instance is invalid.";
 
         response.steps.back().success = false;
-        response.steps.back().details = instance_result.error_message;
-
-        response.diagnostics.push_back({
-            DiagnosticSeverity::Error,
-            "INST_PARSE_FAILED",
-            instance_result.error_message,
-            ""
-        });
+        response.steps.back().details = firstDiagnosticMessage(
+            instance_result.diagnostics,
+            "Failed to parse instance.");
 
         return response;
     }
@@ -63,21 +81,16 @@ ValidationResponse ValidatorEngine::evaluate(
     });
 
     InstanceValidator instance_validator;
-
-    bool instance_ok =
-        instance_validator.validate(instance, response);
+    bool instance_ok = instance_validator.validate(instance, response);
 
     if (!instance_ok) {
-
         response.status = ValidatorStatus::ErrorInstance;
-
-        response.summary =
-            response.diagnostics.empty()
-                ? "Instance validation failed."
-                : response.diagnostics.back().message;
+        response.summary = "Instance is invalid.";
 
         response.steps.back().success = false;
-        response.steps.back().details = response.summary;
+        response.steps.back().details = firstDiagnosticMessage(
+            response.diagnostics,
+            "Instance validation failed.");
 
         return response;
     }
@@ -85,12 +98,7 @@ ValidationResponse ValidatorEngine::evaluate(
     response.steps.back().success = true;
     response.steps.back().details = "All instance-level checks passed.";
 
-    // ------------------------------------------------
-    // Build parsed summary for UI
-    // ------------------------------------------------
-
     ParsedSummary summary;
-
     summary.nodes = instance.nodes;
     summary.streets = instance.streets;
     summary.vehicles = instance.vehicles;
@@ -103,17 +111,13 @@ ValidationResponse ValidatorEngine::evaluate(
     int connector_count = 0;
 
     for (const auto& street : instance.street_list) {
-
         switch (street.category) {
-
             case StreetCategory::Mandatory:
                 ++mandatory_count;
                 break;
-
             case StreetCategory::Optional:
                 ++optional_count;
                 break;
-
             case StreetCategory::Connector:
                 ++connector_count;
                 break;
@@ -137,24 +141,18 @@ ValidationResponse ValidatorEngine::evaluate(
     });
 
     SubmissionParser submission_parser;
-
-    auto submission_result =
-        submission_parser.parse(submission_text);
+    auto submission_result = submission_parser.parse(submission_text);
 
     if (!submission_result.success) {
+        appendDiagnostics(response, submission_result.diagnostics);
 
         response.status = ValidatorStatus::ErrorSubmissionFormat;
-        response.summary = submission_result.error_message;
+        response.summary = "Submission format is invalid.";
 
         response.steps.back().success = false;
-        response.steps.back().details = submission_result.error_message;
-
-        response.diagnostics.push_back({
-            DiagnosticSeverity::Error,
-            "SUB_PARSE_FAILED",
-            submission_result.error_message,
-            ""
-        });
+        response.steps.back().details = firstDiagnosticMessage(
+            submission_result.diagnostics,
+            "Failed to parse submission.");
 
         return response;
     }
@@ -175,21 +173,16 @@ ValidationResponse ValidatorEngine::evaluate(
     });
 
     SubmissionFormatValidator format_validator;
-
-    bool format_ok =
-        format_validator.validate(instance, submission, response);
+    bool format_ok = format_validator.validate(instance, submission, response);
 
     if (!format_ok) {
-
         response.status = ValidatorStatus::ErrorSubmissionFormat;
-
-        response.summary =
-            response.diagnostics.empty()
-                ? "Submission format validation failed."
-                : response.diagnostics.back().message;
+        response.summary = "Submission format is invalid.";
 
         response.steps.back().success = false;
-        response.steps.back().details = response.summary;
+        response.steps.back().details = firstDiagnosticMessage(
+            response.diagnostics,
+            "Submission format validation failed.");
 
         return response;
     }
@@ -208,21 +201,16 @@ ValidationResponse ValidatorEngine::evaluate(
     });
 
     SubmissionSemanticValidator semantic_validator;
-
-    bool semantic_ok =
-        semantic_validator.validate(instance, submission, response);
+    bool semantic_ok = semantic_validator.validate(instance, submission, response);
 
     if (!semantic_ok) {
-
         response.status = ValidatorStatus::Invalid;
-
-        response.summary =
-            response.diagnostics.empty()
-                ? "Submission semantic validation failed."
-                : response.diagnostics.back().message;
+        response.summary = "Submission is invalid.";
 
         response.steps.back().success = false;
-        response.steps.back().details = response.summary;
+        response.steps.back().details = firstDiagnosticMessage(
+            response.diagnostics,
+            "Submission semantic validation failed.");
 
         return response;
     }
@@ -241,8 +229,7 @@ ValidationResponse ValidatorEngine::evaluate(
     });
 
     ScoreCalculator score_calculator;
-    ScoreBreakdown breakdown =
-        score_calculator.compute(instance, submission);
+    ScoreBreakdown breakdown = score_calculator.compute(instance, submission);
 
     response.scoreBreakdown = breakdown;
     response.score = breakdown.finalScore;

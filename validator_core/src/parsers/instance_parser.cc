@@ -4,49 +4,61 @@
 
 namespace validator {
 
-InstanceParseResult InstanceParser::parse(const std::string& text) const {
+namespace {
 
+void addParseError(InstanceParseResult& result,
+                   const std::string& code,
+                   const std::string& message,
+                   const std::string& context = "") {
+    result.diagnostics.push_back({
+        DiagnosticSeverity::Error,
+        code,
+        message,
+        context
+    });
+}
+
+} // namespace
+
+InstanceParseResult InstanceParser::parse(const std::string& text) const {
     InstanceParseResult result;
 
     std::stringstream ss(text);
-
     Instance instance;
 
-    if (!(ss >> instance.nodes
-         >> instance.streets
-         >> instance.time_limit
-         >> instance.vehicles
-         >> instance.depot)) {
-
-    result.error_message = "Failed to parse instance header";
-    return result;
+    std::string headerLine;
+    if (!std::getline(ss, headerLine)) {
+        addParseError(result,
+                      "INST_PARSE_HEADER_MISSING",
+                      "Missing instance header line.");
+        return result;
     }
 
-    if (!(ss >> instance.waste_penalty)) {
-    instance.waste_penalty = 0;
-   }
+    std::stringstream header(headerLine);
 
-//     for (int i = 0; i < instance.nodes; i++) {
-//     Junction junction;
+    if (!(header >> instance.nodes
+                 >> instance.streets
+                 >> instance.time_limit
+                 >> instance.vehicles
+                 >> instance.depot)) {
+        addParseError(result,
+                      "INST_PARSE_HEADER_FAILED",
+                      "Failed to parse instance header.");
+        return result;
+    }
 
-//     if (!(ss >> junction.x >> junction.y)) {
-//         result.error_message = "Failed to parse junction data";
-//         return result;
-//     }
+    // Optional waste penalty
+    if (!(header >> instance.waste_penalty)) {
+        instance.waste_penalty = 0;
+    }
 
-//     instance.junctions.push_back(junction);
-//   }
-    
     // Parse streets
-
     for (int i = 0; i < instance.streets; i++) {
-
         Street street;
-
         street.id = i;
 
-        int direction;
-        char category;
+        int direction = 0;
+        char category = '\0';
 
         if (!(ss >> street.from
                  >> street.to
@@ -55,32 +67,36 @@ InstanceParseResult InstanceParser::parse(const std::string& text) const {
                  >> street.length
                  >> category
                  >> street.requirement)) {
-
-            result.error_message = "Failed to parse street definition";
+            addParseError(result,
+                          "INST_PARSE_STREET_FAILED",
+                          "Failed to parse street definition.",
+                          "street_id=" + std::to_string(i));
             return result;
         }
 
-        // Direction
-
-        if (direction == 1)
+        if (direction == 1) {
             street.direction = Direction::OneWay;
-        else if (direction == 2)
+        } else if (direction == 2) {
             street.direction = Direction::TwoWay;
-        else {
-            result.error_message = "Invalid street direction";
+        } else {
+            addParseError(result,
+                          "INST_PARSE_DIRECTION_INVALID",
+                          "Invalid street direction.",
+                          "street_id=" + std::to_string(i));
             return result;
         }
 
-        // Category
-
-        if (category == 'M')
+        if (category == 'M') {
             street.category = StreetCategory::Mandatory;
-        else if (category == 'O')
+        } else if (category == 'O') {
             street.category = StreetCategory::Optional;
-        else if (category == 'C')
+        } else if (category == 'C') {
             street.category = StreetCategory::Connector;
-        else {
-            result.error_message = "Invalid street category";
+        } else {
+            addParseError(result,
+                          "INST_PARSE_CATEGORY_INVALID",
+                          "Invalid street category.",
+                          "street_id=" + std::to_string(i));
             return result;
         }
 
@@ -88,33 +104,35 @@ InstanceParseResult InstanceParser::parse(const std::string& text) const {
     }
 
     // Parse vehicle types
-
     for (int i = 0; i < instance.vehicles; i++) {
-
-        char type;
+        char type = '\0';
 
         if (!(ss >> type)) {
-
-            result.error_message = "Failed to read vehicle types";
+            addParseError(result,
+                          "INST_PARSE_VEHICLE_TYPE_MISSING",
+                          "Failed to read vehicle types.",
+                          "vehicle_index=" + std::to_string(i));
             return result;
         }
 
-        if (type == 'S')
+        if (type == 'S') {
             instance.vehicle_types.push_back(VehicleType::Small);
-        else if (type == 'M')
+        } else if (type == 'M') {
             instance.vehicle_types.push_back(VehicleType::Medium);
-        else if (type == 'L')
+        } else if (type == 'L') {
             instance.vehicle_types.push_back(VehicleType::Large);
-        else {
-            result.error_message = "Invalid vehicle type";
+        } else {
+            addParseError(result,
+                          "INST_PARSE_VEHICLE_TYPE_INVALID",
+                          "Invalid vehicle type.",
+                          "vehicle_index=" + std::to_string(i));
             return result;
         }
     }
 
     result.success = true;
     result.instance = instance;
-
     return result;
 }
 
-}
+} // namespace validator

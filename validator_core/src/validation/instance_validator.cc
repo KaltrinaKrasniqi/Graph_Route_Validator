@@ -37,57 +37,59 @@ bool InstanceValidator::validate(
     const Instance& instance,
     ValidationResponse& response) const {
 
-    // Step entry should already be added by engine.
-    // This method only appends diagnostics and returns pass/fail.
+    bool is_valid = true;
 
-// Header checks
-if (instance.nodes < 1 || instance.nodes > 10000) {
-    addError(response,
-             "INST_HEADER_INVALID",
-             "Number of nodes must be in [1, 10000].",
-             "nodes=" + std::to_string(instance.nodes));
-    return false;
-}
+    // Header checks
+    if (instance.nodes < 1 || instance.nodes > 10000) {
+        addError(response,
+                 "INST_HEADER_INVALID_NODES",
+                 "Number of nodes must be in [1, 10000].",
+                 "nodes=" + std::to_string(instance.nodes));
+        is_valid = false;
+    }
 
-if (instance.streets < 1 || instance.streets > 100000) {
-    addError(response,
-             "INST_HEADER_INVALID",
-             "Number of streets must be in [1, 100000].",
-             "streets=" + std::to_string(instance.streets));
-    return false;
-}
+    if (instance.streets < 1 || instance.streets > 100000) {
+        addError(response,
+                 "INST_HEADER_INVALID_STREETS",
+                 "Number of streets must be in [1, 100000].",
+                 "streets=" + std::to_string(instance.streets));
+        is_valid = false;
+    }
 
-if (instance.time_limit < 1 || instance.time_limit > 1000000) {
-    addError(response,
-             "INST_HEADER_INVALID",
-             "Time limit must be in [1, 1000000].",
-             "time_limit=" + std::to_string(instance.time_limit));
-    return false;
-}
+    if (instance.time_limit < 1 || instance.time_limit > 1000000) {
+        addError(response,
+                 "INST_HEADER_INVALID_TIME_LIMIT",
+                 "Time limit must be in [1, 1000000].",
+                 "time_limit=" + std::to_string(instance.time_limit));
+        is_valid = false;
+    }
 
-if (instance.vehicles < 1 || instance.vehicles > 100) {
-    addError(response,
-             "INST_HEADER_INVALID",
-             "Number of vehicles must be in [1, 100].",
-             "vehicles=" + std::to_string(instance.vehicles));
-    return false;
-}
+    if (instance.vehicles < 1 || instance.vehicles > 100) {
+        addError(response,
+                 "INST_HEADER_INVALID_VEHICLES",
+                 "Number of vehicles must be in [1, 100].",
+                 "vehicles=" + std::to_string(instance.vehicles));
+        is_valid = false;
+    }
 
-if (instance.depot < 0 || instance.depot >= instance.nodes) {
-    addError(response,
-             "INST_INVALID_DEPOT",
-             "Depot index is out of range.",
-             "depot=" + std::to_string(instance.depot));
-    return false;
-}
+    // Only evaluate depot range if node count is itself usable.
+    if (instance.nodes >= 1 && instance.nodes <= 10000) {
+        if (instance.depot < 0 || instance.depot >= instance.nodes) {
+            addError(response,
+                     "INST_INVALID_DEPOT",
+                     "Depot index is out of range.",
+                     "depot=" + std::to_string(instance.depot));
+            is_valid = false;
+        }
+    }
 
-if (instance.waste_penalty < 0) {
-    addError(response,
-             "INST_HEADER_INVALID",
-             "Waste penalty must be nonnegative.",
-             "waste_penalty=" + std::to_string(instance.waste_penalty));
-    return false;
-}
+    if (instance.waste_penalty < 0) {
+        addError(response,
+                 "INST_HEADER_INVALID_WASTE_PENALTY",
+                 "Waste penalty must be nonnegative.",
+                 "waste_penalty=" + std::to_string(instance.waste_penalty));
+        is_valid = false;
+    }
 
     // Vehicle type count check
     if (static_cast<int>(instance.vehicle_types.size()) != instance.vehicles) {
@@ -96,7 +98,7 @@ if (instance.waste_penalty < 0) {
                  "Vehicle type count does not match declared vehicle count.",
                  "declared=" + std::to_string(instance.vehicles) +
                  ", actual=" + std::to_string(instance.vehicle_types.size()));
-        return false;
+        is_valid = false;
     }
 
     // Street count check
@@ -106,29 +108,37 @@ if (instance.waste_penalty < 0) {
                  "Parsed street count does not match declared street count.",
                  "declared=" + std::to_string(instance.streets) +
                  ", actual=" + std::to_string(instance.street_list.size()));
-        return false;
+        is_valid = false;
     }
 
     std::set<std::pair<int, int>> seen_pairs;
 
-    for (const auto& street : instance.street_list) {
-        // Endpoint range
-        if (street.from < 0 || street.from >= instance.nodes) {
-            addError(response,
-                     "INST_INVALID_NODE_INDEX",
-                     "Street 'from' endpoint is out of range.",
-                     "street=" + std::to_string(street.id) +
-                     ", from=" + std::to_string(street.from));
-            return false;
-        }
+    const bool node_count_usable = (instance.nodes >= 1 && instance.nodes <= 10000);
 
-        if (street.to < 0 || street.to >= instance.nodes) {
-            addError(response,
-                     "INST_INVALID_NODE_INDEX",
-                     "Street 'to' endpoint is out of range.",
-                     "street=" + std::to_string(street.id) +
-                     ", to=" + std::to_string(street.to));
-            return false;
+    for (const auto& street : instance.street_list) {
+        bool endpoints_valid = true;
+
+        // Endpoint range
+        if (node_count_usable) {
+            if (street.from < 0 || street.from >= instance.nodes) {
+                addError(response,
+                         "INST_INVALID_NODE_INDEX_FROM",
+                         "Street 'from' endpoint is out of range.",
+                         "street=" + std::to_string(street.id) +
+                         ", from=" + std::to_string(street.from));
+                is_valid = false;
+                endpoints_valid = false;
+            }
+
+            if (street.to < 0 || street.to >= instance.nodes) {
+                addError(response,
+                         "INST_INVALID_NODE_INDEX_TO",
+                         "Street 'to' endpoint is out of range.",
+                         "street=" + std::to_string(street.id) +
+                         ", to=" + std::to_string(street.to));
+                is_valid = false;
+                endpoints_valid = false;
+            }
         }
 
         // Self-loop
@@ -137,7 +147,7 @@ if (instance.waste_penalty < 0) {
                      "INST_SELF_LOOP",
                      "Street cannot connect a node to itself.",
                      "street=" + std::to_string(street.id));
-            return false;
+            is_valid = false;
         }
 
         // Traversal time
@@ -145,8 +155,9 @@ if (instance.waste_penalty < 0) {
             addError(response,
                      "INST_INVALID_TRAVERSAL_TIME",
                      "Street traversal time cannot be negative.",
-                     "street=" + std::to_string(street.id));
-            return false;
+                     "street=" + std::to_string(street.id) +
+                     ", traversal_time=" + std::to_string(street.traversal_time));
+            is_valid = false;
         }
 
         // Length
@@ -154,8 +165,9 @@ if (instance.waste_penalty < 0) {
             addError(response,
                      "INST_INVALID_LENGTH",
                      "Street length cannot be negative.",
-                     "street=" + std::to_string(street.id));
-            return false;
+                     "street=" + std::to_string(street.id) +
+                     ", length=" + std::to_string(street.length));
+            is_valid = false;
         }
 
         // Requirement
@@ -165,7 +177,7 @@ if (instance.waste_penalty < 0) {
                      "Street requirement must be one of {0, 10, 20, 30}.",
                      "street=" + std::to_string(street.id) +
                      ", requirement=" + std::to_string(street.requirement));
-            return false;
+            is_valid = false;
         }
 
         // Category consistency
@@ -175,8 +187,10 @@ if (instance.waste_penalty < 0) {
                     addError(response,
                              "INST_CONNECTOR_INCONSISTENT",
                              "Connector streets must have length 0 and requirement 0.",
-                             "street=" + std::to_string(street.id));
-                    return false;
+                             "street=" + std::to_string(street.id) +
+                             ", length=" + std::to_string(street.length) +
+                             ", requirement=" + std::to_string(street.requirement));
+                    is_valid = false;
                 }
                 break;
 
@@ -184,29 +198,34 @@ if (instance.waste_penalty < 0) {
             case StreetCategory::Optional:
                 if (street.requirement == 0) {
                     addError(response,
-                             "INST_INVALID_REQUIREMENT",
+                             "INST_CATEGORY_REQUIREMENT_INCONSISTENT",
                              "Mandatory/optional streets must have requirement in {10, 20, 30}.",
-                             "street=" + std::to_string(street.id));
-                    return false;
+                             "street=" + std::to_string(street.id) +
+                             ", requirement=" + std::to_string(street.requirement));
+                    is_valid = false;
                 }
                 break;
         }
 
         // Duplicate unordered pair rule
-        auto p = normalizedPair(street.from, street.to);
-        if (seen_pairs.count(p)) {
-            addError(response,
-                     "INST_DUPLICATE_EDGE",
-                     "More than one street exists for the same node pair.",
-                     "street=" + std::to_string(street.id) +
-                     ", pair=(" + std::to_string(p.first) +
-                     "," + std::to_string(p.second) + ")");
-            return false;
+        // Only do this when endpoints are valid enough to trust.
+        if (endpoints_valid) {
+            auto p = normalizedPair(street.from, street.to);
+            if (seen_pairs.count(p)) {
+                addError(response,
+                         "INST_DUPLICATE_EDGE",
+                         "More than one street exists for the same node pair.",
+                         "street=" + std::to_string(street.id) +
+                         ", pair=(" + std::to_string(p.first) +
+                         "," + std::to_string(p.second) + ")");
+                is_valid = false;
+            } else {
+                seen_pairs.insert(p);
+            }
         }
-        seen_pairs.insert(p);
     }
 
-    return true;
+    return is_valid;
 }
 
 } // namespace validator

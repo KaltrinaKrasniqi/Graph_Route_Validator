@@ -59,33 +59,61 @@ bool SubmissionSemanticValidator::validate(
     const Submission& submission,
     ValidationResponse& response) const {
 
+    bool is_valid = true;
+
     std::set<int> globally_cleaned_mandatory;
     const auto street_lookup = buildStreetLookup(instance);
 
-    for (int vehicle_index = 0; vehicle_index < static_cast<int>(submission.routes.size()); ++vehicle_index) {
+    for (int vehicle_index = 0;
+         vehicle_index < static_cast<int>(submission.routes.size());
+         ++vehicle_index) {
+
         const auto& route = submission.routes[vehicle_index];
         VehicleType vehicle_type = instance.vehicle_types[vehicle_index];
         int capacity = vehicleCapacity(vehicle_type);
+
+        bool route_has_usable_structure = true;
+        bool route_moves_are_valid = true;
 
         if (route.route_nodes.empty()) {
             addError(response,
                      "SUB_INVALID_EMPTY_ROUTE",
                      "Vehicle route cannot be empty.",
                      "vehicle=" + std::to_string(vehicle_index));
-            return false;
+            is_valid = false;
+            route_has_usable_structure = false;
         }
 
-        if (route.route_nodes.front() != instance.depot ||
-            route.route_nodes.back() != instance.depot) {
-            addError(response,
-                     "SUB_INVALID_START_END",
-                     "Vehicle route must start and end at the depot.",
-                     "vehicle=" + std::to_string(vehicle_index));
-            return false;
+        if (!route.route_nodes.empty()) {
+            if (route.route_nodes.front() != instance.depot) {
+                addError(response,
+                         "SUB_INVALID_START",
+                         "Vehicle route must start at the depot.",
+                         "vehicle=" + std::to_string(vehicle_index) +
+                         ", expected_depot=" + std::to_string(instance.depot) +
+                         ", actual_start=" + std::to_string(route.route_nodes.front()));
+                is_valid = false;
+            }
+
+            if (route.route_nodes.back() != instance.depot) {
+                addError(response,
+                         "SUB_INVALID_END",
+                         "Vehicle route must end at the depot.",
+                         "vehicle=" + std::to_string(vehicle_index) +
+                         ", expected_depot=" + std::to_string(instance.depot) +
+                         ", actual_end=" + std::to_string(route.route_nodes.back()));
+                is_valid = false;
+            }
+        }
+
+        if (!route_has_usable_structure) {
+            continue;
         }
 
         int total_time = 0;
         std::vector<int> traversed_street_ids;
+        traversed_street_ids.reserve(
+            route.route_nodes.size() > 0 ? route.route_nodes.size() - 1 : 0);
 
         for (int i = 0; i + 1 < static_cast<int>(route.route_nodes.size()); ++i) {
             int u = route.route_nodes[i];
@@ -99,7 +127,9 @@ bool SubmissionSemanticValidator::validate(
                          "vehicle=" + std::to_string(vehicle_index) +
                          ", from=" + std::to_string(u) +
                          ", to=" + std::to_string(v));
-                return false;
+                is_valid = false;
+                route_moves_are_valid = false;
+                continue;
             }
 
             int street_id = it->second;
@@ -114,10 +144,18 @@ bool SubmissionSemanticValidator::validate(
                      "vehicle=" + std::to_string(vehicle_index) +
                      ", time=" + std::to_string(total_time) +
                      ", limit=" + std::to_string(instance.time_limit));
-            return false;
+            is_valid = false;
         }
 
-        std::set<int> traversed_set(traversed_street_ids.begin(), traversed_street_ids.end());
+        // If route moves are invalid, traversed_street_ids may be incomplete or unreliable.
+        //Skipping cleaned-street semantic checks for this vehicle to avoid cascaded fake errors.
+        if (!route_moves_are_valid) {
+            continue;
+        }
+
+        std::set<int> traversed_set(
+            traversed_street_ids.begin(),
+            traversed_street_ids.end());
 
         for (int street_id : route.cleaned_street_ids) {
             if (!traversed_set.count(street_id)) {
@@ -126,7 +164,8 @@ bool SubmissionSemanticValidator::validate(
                          "Vehicle cleans a street it did not traverse.",
                          "vehicle=" + std::to_string(vehicle_index) +
                          ", street_id=" + std::to_string(street_id));
-                return false;
+                is_valid = false;
+                continue;
             }
 
             const Street& street = instance.street_list[street_id];
@@ -137,7 +176,7 @@ bool SubmissionSemanticValidator::validate(
                          "Connector streets cannot be cleaned.",
                          "vehicle=" + std::to_string(vehicle_index) +
                          ", street_id=" + std::to_string(street_id));
-                return false;
+                is_valid = false;
             }
 
             if (capacity < street.requirement) {
@@ -148,7 +187,7 @@ bool SubmissionSemanticValidator::validate(
                          ", street_id=" + std::to_string(street_id) +
                          ", capacity=" + std::to_string(capacity) +
                          ", requirement=" + std::to_string(street.requirement));
-                return false;
+                is_valid = false;
             }
 
             if (street.category == StreetCategory::Mandatory) {
@@ -164,11 +203,11 @@ bool SubmissionSemanticValidator::validate(
                      "SUB_MANDATORY_MISSING",
                      "A mandatory street was not cleaned.",
                      "street_id=" + std::to_string(street.id));
-            return false;
+            is_valid = false;
         }
     }
 
-    return true;
+    return is_valid;
 }
 
 } // namespace validator
