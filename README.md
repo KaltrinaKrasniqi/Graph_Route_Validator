@@ -60,7 +60,7 @@ https://emscripten.org/docs/getting_started/downloads.html
 - **Activate the Emscripten environment**:
 - **source ~/emsdk/emsdk_env.sh**
 - **Clone the repository**:
-- **git clone https://github.com/YOUR_USERNAME/validator_clipp.git**
+- **https://github.com/KaltrinaKrasniqi/Graph_Route_Validator.git**
 - **cd validator_clipp**
 - **Build the WebAssembly module**:
 - **cd wasm**
