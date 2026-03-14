@@ -23,6 +23,7 @@ The web interface allows users to upload instance and submission files and view 
 ```text
 validator_clipp
 │
+├── validator_clipp
 ├── validator_core
 │   ├── include
 │   │   ├── engine
@@ -56,17 +57,17 @@ validator_clipp
 Install Emscripten using the official guide:
 https://emscripten.org/docs/getting_started/downloads.html
 
-**Activate the Emscripten environment**:
-**source ~/emsdk/emsdk_env.sh**
-**Clone the repository**:
-**git clone https://github.com/YOUR_USERNAME/validator_clipp.git**
-**cd validator_clipp**
-**Build the WebAssembly module**:
-**cd wasm**
-**./build.sh**
-**Run the development server**:
-**npm install**
-**npm run dev**
+- **Activate the Emscripten environment**:
+- **source ~/emsdk/emsdk_env.sh**
+- **Clone the repository**:
+- **git clone https://github.com/YOUR_USERNAME/validator_clipp.git**
+- **cd validator_clipp**
+- **Build the WebAssembly module**:
+- **cd wasm**
+- **./build.sh**
+- **Run the development server**:
+- **npm install**
+- **npm run dev**
 
 ## Technologies Used
 
