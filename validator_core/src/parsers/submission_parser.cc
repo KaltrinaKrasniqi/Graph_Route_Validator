@@ -104,8 +104,8 @@ SubmissionParseResult SubmissionParser::parse(const std::string& text) const {
         // Read n
         if (!std::getline(input, line)) {
             addParseError(result,
-                          "SUB_PARSE_ROUTE_LENGTH_MISSING",
-                          "Missing route length line for vehicle " + std::to_string(vehicle_index) + ".",
+                          "SUB_PARSE_ROUTE_STEP_COUNT_MISSING",
+                          "Missing route step count line for vehicle " + std::to_string(vehicle_index) + ".",
                           "vehicle_index=" + std::to_string(vehicle_index));
             return result;
         }
@@ -114,16 +114,16 @@ SubmissionParseResult SubmissionParser::parse(const std::string& text) const {
 
         if (!parseSingleIntegerLine(line, n)) {
             addParseError(result,
-                          "SUB_PARSE_ROUTE_LENGTH_FAILED",
-                          "Failed to parse route length for vehicle " + std::to_string(vehicle_index) + ".",
+                          "SUB_PARSE_ROUTE_STEP_COUNT_FAILED",
+                          "Failed to parse route step count for vehicle " + std::to_string(vehicle_index) + ".",
                           "vehicle_index=" + std::to_string(vehicle_index));
             return result;
         }
 
         if (n < 0) {
             addParseError(result,
-                          "SUB_PARSE_ROUTE_LENGTH_NEGATIVE",
-                          "Negative route length for vehicle " + std::to_string(vehicle_index) + ".",
+                          "SUB_PARSE_ROUTE_STEP_COUNT_NEGATIVE",
+                          "Negative route step count for vehicle " + std::to_string(vehicle_index) + ".",
                           "vehicle_index=" + std::to_string(vehicle_index));
             return result;
         }

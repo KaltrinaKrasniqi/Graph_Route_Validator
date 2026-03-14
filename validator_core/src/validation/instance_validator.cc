@@ -208,7 +208,7 @@ bool InstanceValidator::validate(
         }
 
         // Duplicate unordered pair rule
-        // Only do this when endpoints are valid enough to trust.
+        // Only do this when endpoints are valid enough.
         if (endpoints_valid) {
             auto p = normalizedPair(street.from, street.to);
             if (seen_pairs.count(p)) {
