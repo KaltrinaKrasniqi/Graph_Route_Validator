@@ -12,7 +12,7 @@ export interface ParsedSummary {
   vehicles: number;
   depot: number;
   timeLimit: number;
-  wastePenalty: number;
+  alpha: number;
   mandatoryStreetCount: number;
   optionalStreetCount: number;
   connectorStreetCount: number;
@@ -36,7 +36,11 @@ export interface ScoreBreakdown {
   cleanedOptionalCount: number;
   distinctCleanedLength: number;
   totalWaste: number;
-  wastePenalty: number;
+  alpha: number;
+  lMax: number;
+  wMax: number;
+  coverage: number;
+  efficiency: number;
   finalScore: number;
 }
 

@@ -12,7 +12,7 @@ struct Instance {
     int time_limit = 0;
     int vehicles = 0;
     int depot = 0;
-    int waste_penalty = 0;
+    double alpha = 0.0;
 
     std::vector<Junction> junctions;
     std::vector<Street> street_list;

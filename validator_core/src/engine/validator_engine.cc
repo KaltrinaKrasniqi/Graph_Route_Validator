@@ -104,7 +104,7 @@ ValidationResponse ValidatorEngine::evaluate(
     summary.vehicles = instance.vehicles;
     summary.depot = instance.depot;
     summary.timeLimit = instance.time_limit;
-    summary.wastePenalty = instance.waste_penalty;
+    summary.alpha = instance.alpha;
 
     int mandatory_count = 0;
     int optional_count = 0;

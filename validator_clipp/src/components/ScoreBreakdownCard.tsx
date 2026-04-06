@@ -10,7 +10,11 @@ const fields: { key: keyof ScoreBreakdown; label: string }[] = [
   { key: "cleanedOptionalCount", label: "Cleaned Optional" },
   { key: "distinctCleanedLength", label: "Distinct Cleaned Length" },
   { key: "totalWaste", label: "Total Waste" },
-  { key: "wastePenalty", label: "Waste Penalty" },
+  { key: "alpha", label: "Alpha" },
+  { key: "lMax", label: "L Max" },
+  { key: "wMax", label: "W Max" },
+  { key: "coverage", label: "Coverage" },
+  { key: "efficiency", label: "Efficiency" },
   { key: "finalScore", label: "Final Score" },
 ];
 
@@ -25,13 +29,21 @@ const ScoreBreakdownCard: React.FC<ScoreBreakdownCardProps> = ({ breakdown }) =>
           const isFinal = key === "finalScore";
           return (
             <div
-              key={key}
-              className={`rounded-md px-3 py-2.5 ${isFinal ? "bg-primary/10 border border-primary/20 col-span-2 sm:col-span-1" : "bg-muted/50"}`}
+              key={String(key)}
+              className={`rounded-md px-3 py-2.5 ${
+                isFinal
+                  ? "bg-primary/10 border border-primary/20 col-span-2 sm:col-span-1"
+                  : "bg-muted/50"
+              }`}
             >
               <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                 {label}
               </p>
-              <p className={`mt-0.5 text-lg font-semibold font-mono ${isFinal ? "text-primary" : ""}`}>
+              <p
+                className={`mt-0.5 text-lg font-semibold font-mono ${
+                  isFinal ? "text-primary" : ""
+                }`}
+              >
                 {breakdown[key]}
               </p>
             </div>

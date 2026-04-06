@@ -83,11 +83,11 @@ bool InstanceValidator::validate(
         }
     }
 
-    if (instance.waste_penalty < 0) {
+    if (instance.alpha < 0.0 || instance.alpha > 1.0) {
         addError(response,
-                 "INST_HEADER_INVALID_WASTE_PENALTY",
-                 "Waste penalty must be nonnegative.",
-                 "waste_penalty=" + std::to_string(instance.waste_penalty));
+                 "INST_HEADER_INVALID_ALPHA",
+                 "Alpha must be in [0, 1].",
+                 "alpha=" + std::to_string(instance.alpha));
         is_valid = false;
     }
 

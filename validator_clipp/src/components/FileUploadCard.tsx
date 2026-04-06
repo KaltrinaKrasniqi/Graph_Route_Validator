@@ -22,7 +22,24 @@ const FileUploadCard: React.FC<FileUploadCardProps> = ({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const f = e.dataTransfer.files[0];
-    if (f) onFileSelect(f);
+    if (f) {
+      onFileSelect(f);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) {
+      onFileSelect(f);
+    }
+  };
+
+  const handleRemove = () => {
+    onFileRemove();
+
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
   };
 
   return (
@@ -37,10 +54,7 @@ const FileUploadCard: React.FC<FileUploadCardProps> = ({
         type="file"
         accept=".txt"
         className="hidden"
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) onFileSelect(f);
-        }}
+        onChange={handleInputChange}
       />
 
       {file ? (
@@ -51,13 +65,14 @@ const FileUploadCard: React.FC<FileUploadCardProps> = ({
             variant="ghost"
             size="icon"
             className="h-7 w-7 shrink-0"
-            onClick={onFileRemove}
+            onClick={handleRemove}
           >
             <X className="h-4 w-4" />
           </Button>
         </div>
       ) : (
         <button
+          type="button"
           onClick={() => inputRef.current?.click()}
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}

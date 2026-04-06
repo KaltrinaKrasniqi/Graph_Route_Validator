@@ -1,4 +1,4 @@
-# Graph Route Validator
+# CLIPP - Graph Route Validator
 
 This repository contains the Graph Route Validator — a tool designed to validate routing solutions for a street-cleaning optimization problem based on a set of defined rules and constraints. 
 The validator checks whether a submitted solution satisfies all structural, logical, and semantic constraints, and computes the final score for valid submissions.

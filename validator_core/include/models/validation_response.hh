@@ -24,7 +24,7 @@ struct ParsedSummary {
     int vehicles = 0;
     int depot = 0;
     int timeLimit = 0;
-    int wastePenalty = 0;
+    double alpha = 0.0;
     int mandatoryStreetCount = 0;
     int optionalStreetCount = 0;
     int connectorStreetCount = 0;
@@ -48,7 +48,12 @@ struct ScoreBreakdown {
     int cleanedOptionalCount = 0;
     double distinctCleanedLength = 0.0;
     double totalWaste = 0.0;
-    int wastePenalty = 0;
+
+    double alpha = 0.0;
+    double lMax = 0.0;
+    double wMax = 0.0;
+    double coverage = 0.0;
+    double efficiency = 1.0;
     double finalScore = 0.0;
 };
 

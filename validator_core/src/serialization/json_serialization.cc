@@ -52,7 +52,7 @@ std::string JsonSerializer::serialize(const ValidationResponse& response) {
             {"vehicles", ps.vehicles},
             {"depot", ps.depot},
             {"timeLimit", ps.timeLimit},
-            {"wastePenalty", ps.wastePenalty},
+            {"alpha", ps.alpha},
             {"mandatoryStreetCount", ps.mandatoryStreetCount},
             {"optionalStreetCount", ps.optionalStreetCount},
             {"connectorStreetCount", ps.connectorStreetCount}
@@ -87,7 +87,11 @@ std::string JsonSerializer::serialize(const ValidationResponse& response) {
             {"cleanedOptionalCount", sb.cleanedOptionalCount},
             {"distinctCleanedLength", sb.distinctCleanedLength},
             {"totalWaste", sb.totalWaste},
-            {"wastePenalty", sb.wastePenalty},
+            {"alpha", sb.alpha},
+            {"lMax", sb.lMax},
+            {"wMax", sb.wMax},
+            {"coverage", sb.coverage},
+            {"efficiency", sb.efficiency},
             {"finalScore", sb.finalScore}
         };
     } else {

@@ -47,9 +47,12 @@ InstanceParseResult InstanceParser::parse(const std::string& text) const {
         return result;
     }
 
-    // Optional waste penalty
-    if (!(header >> instance.waste_penalty)) {
-        instance.waste_penalty = 0;
+    // Alpha weight for scoring
+    if (!(header >> instance.alpha)) {
+        addParseError(result,
+                      "INST_PARSE_ALPHA_FAILED",
+                      "Failed to parse alpha from instance header.");
+        return result;
     }
 
     // Parse streets
