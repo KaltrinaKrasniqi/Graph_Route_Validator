@@ -53,3 +53,31 @@ export interface ValidationResponse {
   diagnostics: Diagnostic[];
   scoreBreakdown: ScoreBreakdown | null;
 }
+
+export type BatchValidationItemStatus =
+  | "valid"
+  | "invalid"
+  | "error"
+  | "missing_input"
+  | "missing_output"
+  | "duplicate_input"
+  | "duplicate_output";
+
+export interface BatchValidationItem {
+  key: string;
+  displayName: string;
+  inputFileName?: string;
+  outputFileName?: string;
+  status: BatchValidationItemStatus;
+  message: string;
+  result: ValidationResponse | null;
+}
+
+export interface BatchValidationSummary {
+  totalInputFiles: number;
+  totalOutputFiles: number;
+  matchedPairs: number;
+  validRuns: number;
+  invalidRuns: number;
+  totalScoreAcrossValidInstances: number;
+}
